@@ -94,6 +94,6 @@ with Matchers with ScalaFutures {
 
     // Now, read back the names to make sure they were all written
     val df = sql.read.format("filodb.spark").option("dataset", largeDataset.name).load()
-    df.select(count("age")).collect.head(0) should equal (lotLotNames.length)
+    df.select(count("age")).collect.head should equal (lotLotNames.length)
   }
 }

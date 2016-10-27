@@ -37,6 +37,7 @@ class SaveAsFiloTest extends SparkTestBase {
   val sc = new SparkContext(conf)
   val sql = new HiveContext(sc)
 
+  import  sql.sparkSession.implicits._
   val segCol = ":string 0"
   val partKeys = Seq(":string part0")
   val ds1 = Dataset("gdelt1", "id", segCol)
@@ -66,8 +67,8 @@ class SaveAsFiloTest extends SparkTestBase {
 
     // Now read stuff back and ensure it got written
     val df = sql.filoDataset("gdelt1")
-    df.select(count("id")).collect().head(0) should equal (3)
-    df.agg(sum("year")).collect().head(0) should equal (4030)
+    df.select(count("id")).collect().head should equal (3)
+    df.agg(sum("year")).collect().head should equal (4030)
     val row = df.select("id", "sqlDate", "monthYear").limit(1).collect.head
     row(0) should equal (0)
     row(1) should equal ("2015/03/15T15:00Z")
@@ -134,7 +135,7 @@ class SaveAsFiloTest extends SparkTestBase {
 
     // Now read stuff back and ensure it got written
     val df = sql.filoDataset("gdelt1")
-    df.select(count("id")).collect().head(0) should equal (3)
+    df.select(count("id")).collect().head should equal (3)
   }
 
   it("should throw error in ErrorIfExists mode if dataset already exists") {

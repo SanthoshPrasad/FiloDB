@@ -1,21 +1,22 @@
 package filodb
 
-import akka.actor.{ActorRef}
+import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import java.util.concurrent.ArrayBlockingQueue
-import org.apache.spark.sql.{SQLContext, SaveMode, DataFrame, Row}
+
+import org.apache.spark.sql._
 import org.apache.spark.sql.types.StructType
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.language.postfixOps
-
 import filodb.core._
 import filodb.core.metadata.{Column, DataColumn, Dataset, RichProjection}
-import filodb.coordinator.{IngestionCommands, DatasetCommands, RowSource, DatasetCoordinatorActor}
+import filodb.coordinator.{DatasetCommands, DatasetCoordinatorActor, IngestionCommands, RowSource}
 import org.apache.spark.sql.hive.filodb.MetaStoreSync
 
 package spark {
@@ -109,10 +110,10 @@ package object spark extends StrictLogging {
   def syncToHive(sqlContext: SQLContext): Unit = {
     val config = FiloDriver.initAndGetConfig(sqlContext.sparkContext)
     if (config.hasPath("hive.database-name")) {
-      MetaStoreSync.getHiveContext(sqlContext).foreach { hiveContext =>
+      MetaStoreSync.getSparkSession(sqlContext).foreach { sparkSession =>
         MetaStoreSync.syncFiloTables(config.getString("hive.database-name"),
                                      metaStore,
-                                     hiveContext)
+          sparkSession)
       }
     }
   }

@@ -107,7 +107,6 @@ object FiloExecutor extends FiloSetup with StrictLogging {
   /**
    * Initializes the config if it is not set, and start things for an executor.
    * @param filoConfig The config within the filodb.** level.
-   * @param role the Akka Cluster role, either "executor" or "driver"
    */
   def init(filoConfig: Config): Unit = synchronized {
     _config.getOrElse {
