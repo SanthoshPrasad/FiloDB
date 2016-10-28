@@ -1,11 +1,11 @@
 package filodb.stress
 
-import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.sql.{DataFrame, SaveMode, SQLContext}
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode, SparkSession}
+
 import scala.util.Random
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-
 import filodb.spark._
 
 /**
@@ -52,15 +52,17 @@ object InMemoryQueryStress extends App {
   val allQueries = singleDriverQueries
 
   // Setup SparkContext, etc.
-  val conf = (new SparkConf).setMaster("local[8]")
-                            .setAppName("test")
-                            .set("spark.filodb.store", "in-memory")
-                            .set("spark.sql.shuffle.partitions", "4")
-                            .set("spark.scheduler.mode", "FAIR")
-                            .set("spark.ui.enabled", "false")   // No need for UI when doing perf stuff
-                            .set("spark.filodb.memtable.min-free-mb", "50")
-  val sc = new SparkContext(conf)
-  val sql = new SQLContext(sc)
+
+
+  val spark = SparkSession.builder().appName("test").master("local[8]").config("spark.filodb.store", "in-memory")
+    .config("spark.sql.shuffle.partitions", "4")
+    .config("spark.scheduler.mode", "FAIR")
+    .config("spark.ui.enabled", "false")   // No need for UI when doing perf stuff
+    .config("spark.filodb.memtable.min-free-mb", "50").getOrCreate();
+
+
+  val sc = spark.sparkContext
+  val sql = spark.sqlContext
 
   // Ingest file - note, this will take several minutes
   puts("Starting ingestion...")
@@ -76,7 +78,7 @@ object InMemoryQueryStress extends App {
   puts("Ingestion done.")
 
   val taxiDF = sql.filoDataset("nyc_taxi")
-  taxiDF.registerTempTable("nyc_taxi")
+  taxiDF.createOrReplaceTempView("nyc_taxi")
   val numRecords = taxiDF.count()
   puts(s"Ingested $numRecords records")
 

@@ -2,14 +2,14 @@ package filodb.stress
 
 import com.opencsv.CSVReader
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SaveMode, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode, SparkSession}
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.joda.time.DateTime
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.Try
-
 import filodb.core.DatasetRef
 import filodb.spark._
 
@@ -37,12 +37,18 @@ object StreamingStress extends App {
   }
 
   // Setup SparkContext, etc.
-  val conf = (new SparkConf).setAppName("stream-test")
+  val conf = (new SparkConf).setAppName("stream-test").setMaster("local[8]")
                             .set("spark.filodb.cassandra.keyspace", "filostress")
                             .set("spark.sql.shuffle.partitions", "4")
                             .set("spark.scheduler.mode", "FAIR")
-  val sc = new SparkContext(conf)
-  val sql = new SQLContext(sc)
+
+
+
+  val spark =  SparkSession.builder().config(conf).getOrCreate()
+  val sc = spark.sparkContext
+  val sql = spark.sqlContext
+
+
   val ssc = new StreamingContext(sc, Milliseconds(1000))
   val ref = DatasetRef("taxi_streaming")
 
@@ -71,7 +77,7 @@ object StreamingStress extends App {
                         dropoff_longitude: Double,
                         dropoff_latitude: Double)
 
-  import sql.implicits._
+  import spark.implicits._
 
   private def toTimeMsLong(dtString: String): Long = {
     val dt = DateTime.parse(dtString.replace(" ", "T"))

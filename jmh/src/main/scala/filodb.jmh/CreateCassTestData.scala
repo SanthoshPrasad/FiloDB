@@ -1,8 +1,8 @@
 package filodb.jmh
 
 import filodb.spark.FiloDriver
-import org.apache.spark.sql.{DataFrame, SaveMode, SQLContext}
-import org.apache.spark.{SparkContext, SparkException, SparkConf}
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode, SparkSession}
+import org.apache.spark.{SparkConf, SparkContext, SparkException}
 
 /**
  * Creates Cassandra test data for the SparkReadBenchmark.  Note that only 1 partition
@@ -18,8 +18,10 @@ object CreateCassTestData extends App {
                             .set("filodb.memtable.min-free-mb", "10")
                             .set("spark.driver.memory", "3g")
                             .set("spark.executor.memory", "5g")
-  val sc = new SparkContext(conf)
-  val sql = new SQLContext(sc)
+
+  val spark = SparkSession.builder().config(conf).getOrCreate();
+  val sc = spark.sparkContext
+  val sql = spark.sqlContext
 
   case class DummyRow(data: Int, rownum: Int)
 

@@ -1,11 +1,11 @@
 package filodb.stress
 
-import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.sql.{DataFrame, SaveMode, SQLContext}
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode, SparkSession}
+
 import scala.util.Random
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-
 import filodb.core.DatasetRef
 import filodb.spark._
 
@@ -36,13 +36,16 @@ object IngestionStress extends App {
   }
 
   // Setup SparkContext, etc.
-  val conf = (new SparkConf).setAppName("test")
+  val conf = (new SparkConf).setAppName("test").setMaster("local[8]")
                             .set("spark.filodb.cassandra.keyspace", "filostress")
                             .set("spark.sql.shuffle.partitions", "4")
                             .set("spark.scheduler.mode", "FAIR")
-  val sc = new SparkContext(conf)
-  val sql = new SQLContext(sc)
-  import sql.implicits._
+
+  val spark = SparkSession.builder().config(conf).getOrCreate();
+  val sc = spark.sparkContext
+  val sql = spark.sqlContext
+
+  import spark.implicits._
 
   // Ingest the taxi file two different ways using two Futures
   // One way is by hour of day - very relaxed and fast
@@ -74,7 +77,7 @@ object IngestionStress extends App {
     puts("Stressful ingestion done.")
 
     val df = sql.filoDataset("taxi_medallion_seg")
-    df.registerTempTable("taxi_medallion_seg")
+    df.createOrReplaceTempView("taxi_medallion_seg")
     df
   }
 
