@@ -95,7 +95,7 @@ object IngestionStress extends App {
     puts("hour-of-day (easy) ingestion done.")
 
     val df = sql.filoDataset("taxi_hour_of_day")
-    df.registerTempTable("taxi_hour_of_day")
+    df.createOrReplaceTempView("taxi_hour_of_day")
     df
   }
 

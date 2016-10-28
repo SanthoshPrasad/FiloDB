@@ -33,7 +33,7 @@ class SparkCassBenchmark {
                             // .set("spark.sql.tungsten.enabled", "false")
                             .set("spark.filodb.cassandra.keyspace", "filodb")
 
-  val spark = SparkSession.builder().config(conf).getOrCreate();
+  val spark = SparkSession.builder().config(conf).getOrCreate()
   val sc = spark.sparkContext
   val sql = spark.sqlContext
   // Below is to make sure that Filo actor system stuff is run before test code

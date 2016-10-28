@@ -19,7 +19,7 @@ object CreateCassTestData extends App {
                             .set("spark.driver.memory", "3g")
                             .set("spark.executor.memory", "5g")
 
-  val spark = SparkSession.builder().config(conf).getOrCreate();
+  val spark = SparkSession.builder().config(conf).getOrCreate()
   val sc = spark.sparkContext
   val sql = spark.sqlContext
 

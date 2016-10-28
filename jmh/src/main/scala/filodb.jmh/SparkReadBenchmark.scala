@@ -55,7 +55,7 @@ class SparkReadBenchmark {
                             // .set("spark.sql.tungsten.enabled", "false")
                             .set("spark.filodb.store", "in-memory")
 
-  val spark = SparkSession.builder().config(conf).getOrCreate();
+  val spark = SparkSession.builder().config(conf).getOrCreate()
 
   val sc = spark.sparkContext
   val sql = spark.sqlContext
